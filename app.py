@@ -11,7 +11,7 @@ from sklearn.svm import SVR, SVC
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, accuracy_score, confusion_matrix
 
 # Titre de l'application Streamlit
-st.title("Analyse de Données avec Streamlit")
+st.title("Logique_Floue: Fuzzification")
 
 # Initialisation des variables de session pour les données nettoyées et fuzzifiées
 if "dataset_cleaned" not in st.session_state:
@@ -98,6 +98,15 @@ if uploaded_file is not None:
     # Sélection du modèle
     model_type = st.selectbox("Choisir un modèle", ["Gradient Boosting", "Random Forest", "SVM Classification", "SVR Régression"])
 
+    # Fonction de normalisation des erreurs (MAE, MSE)
+    def normalize_error(errors, y_true, error_type="mae"):
+        # Calcul de la plage ou de l'écart-type des valeurs réelles
+        if error_type == "mae":
+            y_range = y_true.max() - y_true.min()
+        elif error_type == "mse":
+            y_range = np.std(y_true)  # Utilisation de l'écart-type des valeurs réelles pour la MSE
+        return errors / y_range
+
     # Fonction d'entraînement du modèle
     def train_model(data, model_type, label):
         if data is None:
@@ -129,7 +138,13 @@ if uploaded_file is not None:
             mae = mean_absolute_error(y_test, y_pred)
             mse = mean_squared_error(y_test, y_pred)
             r2 = r2_score(y_test, y_pred)
-            st.write(f"MAE: {mae:.2f}, MSE: {mse:.2f}, R²: {r2:.2f}")
+
+            # Normalisation des erreurs
+            mae_normalized = normalize_error(mae, y_test, error_type="mae")
+            mse_normalized = normalize_error(mse, y_test, error_type="mse")
+
+
+            st.write(f"MAE normalisé: {mae_normalized:.2f}, MSE normalisé: {mse_normalized:.2f}, R²: {r2:.2f}")
 
             # Graphique y_test vs y_pred
             plt.figure(figsize=(6, 6))
